@@ -1,0 +1,175 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+	<br>
+
+	<center>
+    	<form action="/submit" id="blockform" method="post" class="clearfix" enctype="multipart/form-data">
+            <div style="float: left">
+            <div class="form-group">
+                <span>Action</span>
+                <select name="action_type" class="form-field">
+                    <option value="" disabled selected>Select action type</option>
+                    <option value="" disabled>Request @context actions</option>
+                    <option value="req_CreateAction">Request - CreateAction</option>
+                    <option value="req_AcceptAction">Request - AcceptAction</option>
+                    <option value="req_RejectAction">Request - RejectAction</option>
+                    <option value="req_ReplaceAction">Request - ReplaceAction</option>
+                    <option value="req_CancelAction">Request - CancelAction</option>
+                    <option value="" disabled>Result @context actions</option>
+                    <option value="res_CreateAction">Result - CreateAction</option>
+                    <option value="res_AcceptAction">Result - AcceptAction</option>
+                    <option value="res_RejectAction">Result - RejectAction</option>
+                    <option value="res_ReplaceAction">Result - ReplaceAction</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <span>Action</span>
+                <input class="form-field" type="text" name="action_name" placeholder="Name">
+            </div>
+            <div class="form-group">
+                <span>Action</span>
+                <textarea class="form-field" name="action_desc" rows="4" cols="50" placeholder="Description"></textarea>
+            </div>
+            </div>
+            <div style="float: right">
+            <div class="form-group">
+                <span>Linked Data</span>
+                <input class="form-field" type="file" name="data" placeholder="Linked Data" accept=".json">
+            </div>
+            <div class="form-group">
+                <span>Submitted by</span>
+        	    <input class="form-field" type="text" name="person_name" placeholder="Your name">
+        	    <input class="form-field" type="text" name="person_org" placeholder="Organization">
+            </div>
+            <div class="form-group">
+                <span>Reference</span>
+                <input class="form-field" type="text" id="ref_transaction" name="ref_transaction" placeholder="Transaction ID">
+                <input class="form-field" type="text" name="ref_object" placeholder="Object ID">
+            </div>
+            <input class="form-field" type="submit" value="Submit" style="width: 50%">
+        </div>
+    	</form>
+
+        <form style="display: none;" action="http://127.0.0.1:8000/register_node" method="post" class="clearfix">
+            <div class="form-group">
+                <span>Adding node</span>
+                <input class="form-field" type="text" name="node_address" placeholder="Node address">
+            </div>
+            <input class="form-field" type="submit" value="Submit" style="width: 50%">
+        </form>
+	</center>
+
+	<br>
+    <hr>
+
+    <div class="clearfix" style="margin-top: 20px">
+        <div class="form-group" style="float: left">
+            <span>Blockchain</span>
+        	<a href="{{node_address}}/mine" target="_blank" class="form-field" style="text-align: center">Request to mine</a>
+        	<a href="/" class="form-field" style="text-align: center">Resync</a>
+        </div>
+
+        <div class="form-group" style="float: righ; display: none">
+            <a href="/visual" target="_blank" class="form-field" style="text-align: center">Visualize</a>
+        </div>
+    </div>
+
+	<div style="margin: 20px;">
+
+    {% for post in posts %}
+    <div class="post_box-subtitle" style="margin-bottom: 10px;">
+        Action: <strong>{{post.action["@type"]}} <small>({{post["@context"][-1]}})</small></strong>
+        | Referencing:
+        <strong>{{post.action.transaction_id}}{% if post.action.object_id %}/object/{{post.action.object_id}}{% endif%}
+        </strong>
+        | Transaction ID: <strong>{{post["@id"]}}</strong>
+        | <small>Context: <strong>{{post["@context"]}}</strong></small>
+    </div>
+    <div class="post_box">
+        <div class="post_box-header">
+            <div class="post_box-options"><button class="option-btn" onclick="$('#ref_transaction').val('{{post["@id"]}}')">React to Transaction</button></div>
+
+            <div style="background: #178EFE none repeat scroll 0% 0%; box-shadow: #275EFE 0px 0px 0px 2px;" class="post_box-avatar">
+              {{post.action.agent.name[0]}}
+            </div>
+
+            <div class="name-header">Name: <strong>{{post.action.name}}</strong></div>
+            <div class="post_box-subtitle">
+                Submitted by <strong>{{post.action.agent.name}} (@{{post.action.agent.organization}})</strong> on <i>{{readable_time(post.timestamp)}}</i>
+            </div>
+	   </div>
+	   <div>
+	      <div class="post_box-body">
+	         <pre>{{post.data|tojson_pretty}}</pre>
+	      </div>
+	   </div>
+	</div>
+	{% endfor %}
+
+	<style>
+		.post_box {
+		    background: #fff;
+		    padding: 15px;
+		    margin-top: 0px;
+		    margin-bottom: 50px;
+		    border-top: 1px solid #f0f0f0;
+            border-bottom: 2px solid #678EFE;
+		}
+
+		.post_box-header {
+		    padding-bottom: 12px;
+		}
+
+		.post_box-avatar {
+		    width: 38px;
+		    height: 38px;
+		    border-radius: 50%;
+		    display: flex;
+		    justify-content: center;
+		    align-items: center;
+		    color: white;
+		    font-size: 22px;
+		    float: left;
+		    margin-right: 16px;
+		    border: 1px solid #fff;
+		    box-shadow: 0px 0px 0px 2px #f00;
+		}
+
+		.post_box-avatar::after {
+		    content:"";
+		    display:block;
+		}
+
+		.post_box-name {
+		    font-weight: bold;
+		}
+
+		.post_box-subtitle {
+		    color: #777;
+		}
+
+		.post_box-body {
+		    margin-top: 16px;
+		    margin-bottom: 8px;
+		}
+
+		.post_box-options {
+		    float: right;
+		}
+		.option-btn {
+		    background: #f8f8f8;
+		    border: none;
+		    color: #2c3e50;
+		    padding: 7px;
+		    cursor: pointer;
+		    font-size: 14px;
+		    margin-left: 2px;
+		    margin-right: 2px;
+		    outline: none;
+		    height: 42px;
+		}
+	</style>
+    </div>
+{% endblock %}
